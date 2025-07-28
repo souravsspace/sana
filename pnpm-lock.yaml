@@ -14,6 +14,9 @@ importers:
       '@libsql/client':
         specifier: ^0.15.9
         version: 0.15.9
+      '@libsql/darwin-arm64':
+        specifier: ^0.5.17
+        version: 0.5.17
       '@radix-ui/react-dialog':
         specifier: ^1.1.14
         version: 1.1.14(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -777,6 +780,11 @@ packages:
 
   '@libsql/darwin-arm64@0.5.13':
     resolution: {integrity: sha512-ASz/EAMLDLx3oq9PVvZ4zBXXHbz2TxtxUwX2xpTRFR4V4uSHAN07+jpLu3aK5HUBLuv58z7+GjaL5w/cyjR28Q==}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@libsql/darwin-arm64@0.5.17':
+    resolution: {integrity: sha512-WTYG2skZsUnZmfZ2v7WFj7s3/5s2PfrYBZOWBKOnxHA8g4XCDc/4bFDaqob9Q2e88+GC7cWeJ8VNkVBFpD2Xxg==}
     cpu: [arm64]
     os: [darwin]
 
@@ -5102,6 +5110,8 @@ snapshots:
 
   '@libsql/darwin-arm64@0.5.13':
     optional: true
+
+  '@libsql/darwin-arm64@0.5.17': {}
 
   '@libsql/darwin-x64@0.5.13':
     optional: true
