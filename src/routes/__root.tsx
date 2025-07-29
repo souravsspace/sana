@@ -17,6 +17,7 @@ import type { TRPCOptionsProxy } from "@trpc/tanstack-react-query";
 
 import { getThemeServerFn } from "@/lib/theme";
 import { ThemeProvider } from "@/providers/ThemeProvider";
+import { Toaster } from "@/components/ui/sonner";
 
 interface MyRouterContext {
   queryClient: QueryClient;
@@ -59,6 +60,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
+        <Toaster />
         {children}
         <Scripts />
       </body>

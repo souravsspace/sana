@@ -14,6 +14,8 @@ import { Wrapper } from "@/components/Wrapper";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { forgetPassword } from "@/integrations/better-auth/auth-client";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_non_authed/forget-password")({
   component: RouteComponent,
@@ -36,13 +38,17 @@ function RouteComponent() {
   const isPending = form.formState.isSubmitting || form.formState.isLoading;
 
   const onSubmit = async (values: ForgetPasswordSchema) => {
-    // const res = await signIn(values);
-    //
-    // if (res?.errorMessage) {
-    //   toast.error(res.errorMessage);
-    // } else {
-    //   toast.success("Signed in successfully!");
-    // }
+    try {
+      const res = await forgetPassword({
+        email: values.email,
+      });
+
+      if (res.error) {
+        toast.error(res.error.message || "Failed to send reset link.");
+      }
+    } catch (err) {
+      toast.error("An unexpected error occurred. Please try again later.");
+    }
   };
 
   const message =

@@ -16,6 +16,7 @@ import { Route as DemoTanstackQueryRouteImport } from './routes/demo.tanstack-qu
 import { Route as Non_authedRegisterRouteImport } from './routes/_non_authed/register'
 import { Route as Non_authedLoginRouteImport } from './routes/_non_authed/login'
 import { Route as Non_authedForgetPasswordRouteImport } from './routes/_non_authed/forget-password'
+import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
 import { Route as DemoStartServerFuncsRouteImport } from './routes/demo.start.server-funcs'
 import { Route as DemoStartApiRequestRouteImport } from './routes/demo.start.api-request'
 import { ServerRoute as ApiDemoNamesServerRouteImport } from './routes/api.demo-names'
@@ -50,6 +51,11 @@ const Non_authedForgetPasswordRoute =
     path: '/forget-password',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthedDashboardRoute = AuthedDashboardRouteImport.update({
+  id: '/_authed/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DemoStartServerFuncsRoute = DemoStartServerFuncsRouteImport.update({
   id: '/demo/start/server-funcs',
   path: '/demo/start/server-funcs',
@@ -78,6 +84,7 @@ const ApiAuthSplatServerRoute = ApiAuthSplatServerRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dashboard': typeof AuthedDashboardRoute
   '/forget-password': typeof Non_authedForgetPasswordRoute
   '/login': typeof Non_authedLoginRoute
   '/register': typeof Non_authedRegisterRoute
@@ -87,6 +94,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dashboard': typeof AuthedDashboardRoute
   '/forget-password': typeof Non_authedForgetPasswordRoute
   '/login': typeof Non_authedLoginRoute
   '/register': typeof Non_authedRegisterRoute
@@ -97,6 +105,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authed/dashboard': typeof AuthedDashboardRoute
   '/_non_authed/forget-password': typeof Non_authedForgetPasswordRoute
   '/_non_authed/login': typeof Non_authedLoginRoute
   '/_non_authed/register': typeof Non_authedRegisterRoute
@@ -108,6 +117,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/dashboard'
     | '/forget-password'
     | '/login'
     | '/register'
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/dashboard'
     | '/forget-password'
     | '/login'
     | '/register'
@@ -126,6 +137,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/_authed/dashboard'
     | '/_non_authed/forget-password'
     | '/_non_authed/login'
     | '/_non_authed/register'
@@ -136,6 +148,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthedDashboardRoute: typeof AuthedDashboardRoute
   Non_authedForgetPasswordRoute: typeof Non_authedForgetPasswordRoute
   Non_authedLoginRoute: typeof Non_authedLoginRoute
   Non_authedRegisterRoute: typeof Non_authedRegisterRoute
@@ -210,6 +223,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Non_authedForgetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authed/dashboard': {
+      id: '/_authed/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthedDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/demo/start/server-funcs': {
       id: '/demo/start/server-funcs'
       path: '/demo/start/server-funcs'
@@ -254,6 +274,7 @@ declare module '@tanstack/react-start/server' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthedDashboardRoute: AuthedDashboardRoute,
   Non_authedForgetPasswordRoute: Non_authedForgetPasswordRoute,
   Non_authedLoginRoute: Non_authedLoginRoute,
   Non_authedRegisterRoute: Non_authedRegisterRoute,

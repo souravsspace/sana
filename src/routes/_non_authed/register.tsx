@@ -17,6 +17,8 @@ import {
 import { Icons } from "@/components/Icons";
 import { Wrapper } from "@/components/Wrapper";
 import { SignInSocial } from "@/components/non-authed/SignInSocial";
+import { useState } from "react";
+import { signUp } from "@/integrations/better-auth/auth-client";
 
 export const Route = createFileRoute("/_non_authed/register")({
   component: RouteComponent,
@@ -51,16 +53,28 @@ function RouteComponent() {
     },
   });
 
-  const isPending = form.formState.isSubmitting || form.formState.isLoading;
+  const [socialPending, setSocialPending] = useState(false);
+  const isPending =
+    form.formState.isSubmitting || form.formState.isLoading || socialPending;
 
   const onSubmit = async (values: registerSchemaType) => {
-    // const res = await signUp(values);
-    //
-    // if (res?.errorMessage) {
-    //   toast.error(res.errorMessage);
-    // } else {
-    //   toast.success("Account created successfully");
-    // }
+    try {
+      const res = await signUp.email({
+        name: `${values.firstname} ${values.lastname}`,
+        email: values.email,
+        password: values.password,
+        callbackURL: "/dashboard",
+      });
+
+      if (res.error) {
+        toast.error(res.error.message || "Failed to create account.");
+      }
+
+      toast.success("Account created successfully!");
+    } catch (err) {
+      toast.error("Failed to create account. Please check your details.");
+      return;
+    }
   };
   return (
     <Wrapper>
@@ -77,11 +91,19 @@ function RouteComponent() {
             </p>
 
             <div className="mt-6 grid grid-cols-2 gap-3">
-              <SignInSocial provider="google">
+              <SignInSocial
+                provider="google"
+                callback={setSocialPending}
+                isLoading={isPending}
+              >
                 <Icons.google />
                 Google
               </SignInSocial>
-              <SignInSocial provider="github">
+              <SignInSocial
+                provider="github"
+                callback={setSocialPending}
+                isLoading={isPending}
+              >
                 <Icons.gitHub />
                 Github
               </SignInSocial>
@@ -137,7 +159,7 @@ function RouteComponent() {
                 />
                 <FormField
                   control={form.control}
-                  name="pwd"
+                  name="password"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Password</FormLabel>

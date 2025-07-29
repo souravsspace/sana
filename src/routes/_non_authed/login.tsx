@@ -17,6 +17,8 @@ import {
 import { Icons } from "@/components/Icons";
 import { SignInSocial } from "@/components/non-authed/SignInSocial";
 import { Wrapper } from "@/components/Wrapper";
+import { signIn } from "@/integrations/better-auth/auth-client";
+import { useState } from "react";
 
 export const Route = createFileRoute("/_non_authed/login")({
   component: RouteComponent,
@@ -38,16 +40,23 @@ function RouteComponent() {
     },
   });
 
-  const isPending = form.formState.isSubmitting || form.formState.isLoading;
+  const [socialPending, setSocialPending] = useState(false);
+  const isPending =
+    form.formState.isSubmitting || form.formState.isLoading || socialPending;
 
   const onSubmit = async (values: LoginSchema) => {
-    // const res = await signIn(values);
-    //
-    // if (res?.errorMessage) {
-    //   toast.error(res.errorMessage);
-    // } else {
-    //   toast.success("Signed in successfully!");
-    // }
+    try {
+      await signIn.email({
+        email: values.email,
+        password: values.pwd,
+        callbackURL: "/dashboard", // TODO: make this configurable
+        rememberMe: true,
+      });
+    } catch (error) {
+      toast.error("Failed to sign in. Please check your credentials.");
+    }
+
+    toast.success("Signed in successfully!");
   };
   return (
     <Wrapper>
@@ -62,11 +71,19 @@ function RouteComponent() {
             <p className="text-sm">Welcome back! Sign in to continue</p>
 
             <div className="mt-6 grid grid-cols-2 gap-3">
-              <SignInSocial provider="google">
+              <SignInSocial
+                provider="google"
+                callback={setSocialPending}
+                isLoading={isPending}
+              >
                 <Icons.google />
                 Google
               </SignInSocial>
-              <SignInSocial provider="github">
+              <SignInSocial
+                provider="github"
+                callback={setSocialPending}
+                isLoading={isPending}
+              >
                 <Icons.gitHub />
                 Github
               </SignInSocial>
