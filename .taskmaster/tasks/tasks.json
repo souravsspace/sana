@@ -1,0 +1,828 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Database Schema Extension and Migration Setup",
+        "description": "Extend existing database schema with linkPage, link, and subscription tables using Drizzle ORM for SQLite",
+        "details": "Create new Drizzle schema files for linkPage (id, userId, title, slug, description, isDefault, isPublic, customDomain, theme, timestamps), link (id, linkPageId, title, url, description, thumbnail, isVisible, sortOrder, clickCount, timestamps), and subscription (id, userId, polarSubscriptionId, tier, status, currentPeriodEnd, timestamps) tables. Extend existing user table with subscriptionTier, subscriptionStatus, polarCustomerId, and username fields. Generate and run migrations to update database structure. Ensure proper foreign key relationships and unique constraints on slug and username fields.",
+        "testStrategy": "Create unit tests for schema validation, test migration rollback/forward, verify foreign key constraints, test unique constraint violations, validate table relationships with sample data",
+        "priority": "high",
+        "dependencies": [],
+        "status": "in-progress",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create New Drizzle Schema Files for Core Tables",
+            "description": "Create new Drizzle schema files defining linkPage, link, and subscription tables with proper field types, constraints, and relationships",
+            "dependencies": [],
+            "details": "Create schema files for linkPage table (id, userId, title, slug, description, isDefault, isPublic, customDomain, theme, createdAt, updatedAt), link table (id, linkPageId, title, url, description, thumbnail, isVisible, sortOrder, clickCount, createdAt, updatedAt), and subscription table (id, userId, polarSubscriptionId, tier, status, currentPeriodEnd, createdAt, updatedAt). Define proper SQLite column types, primary keys, and prepare foreign key relationships. Add unique constraints for slug field in linkPage table.",
+            "status": "pending",
+            "testStrategy": "Validate schema definitions with TypeScript type checking, test table creation queries, verify column types and constraints are properly defined"
+          },
+          {
+            "id": 2,
+            "title": "Extend User Table Schema with Subscription Fields",
+            "description": "Modify existing user table schema to include subscription-related fields and username functionality",
+            "dependencies": [
+              "1.1"
+            ],
+            "details": "Extend the existing user schema file to add subscriptionTier (enum: free, pro, premium), subscriptionStatus (enum: active, cancelled, past_due, incomplete), polarCustomerId (string), and username (string) fields. Add unique constraint on username field. Ensure backward compatibility with existing user data structure and maintain proper relationships with the new subscription table.",
+            "status": "pending",
+            "testStrategy": "Test schema extension without breaking existing user queries, validate unique username constraint, verify enum values for subscription fields"
+          },
+          {
+            "id": 3,
+            "title": "Define Foreign Key Relationships and Constraints",
+            "description": "Establish proper foreign key relationships between all tables and implement database constraints",
+            "dependencies": [
+              "1.1",
+              "1.2"
+            ],
+            "details": "Define foreign key relationships: linkPage.userId -> user.id, link.linkPageId -> linkPage.id, subscription.userId -> user.id. Add cascading delete rules where appropriate (CASCADE for links when linkPage is deleted, RESTRICT for linkPages when user is deleted). Implement unique constraints on critical fields like linkPage.slug and user.username. Add indexes for performance on frequently queried fields.",
+            "status": "pending",
+            "testStrategy": "Test foreign key constraint enforcement, verify cascading deletes work correctly, test unique constraint violations, validate index creation and performance impact"
+          },
+          {
+            "id": 4,
+            "title": "Generate Database Migration Files",
+            "description": "Create Drizzle migration files for the new schema changes and table additions",
+            "dependencies": [
+              "1.1",
+              "1.2",
+              "1.3"
+            ],
+            "details": "Use Drizzle's migration generator to create migration files for the new linkPage, link, and subscription tables. Generate migration for extending the user table with new fields. Ensure migrations handle both forward migration (applying changes) and rollback scenarios. Add proper migration ordering and dependencies. Include data migration scripts if needed for existing users to have default subscription values.",
+            "status": "pending",
+            "testStrategy": "Test migration forward and rollback operations, verify migration file syntax and ordering, test migrations on empty and populated databases, validate data integrity after migrations"
+          },
+          {
+            "id": 5,
+            "title": "Execute Migrations and Validate Database Structure",
+            "description": "Run the generated migrations against the database and verify the complete schema structure",
+            "dependencies": [
+              "1.4"
+            ],
+            "details": "Execute the migration files using Drizzle's migration runner to update the database structure. Verify all tables are created with correct schemas, relationships are properly established, and constraints are enforced. Test the complete database structure with sample data insertion to ensure all relationships work correctly. Document the final schema structure and provide rollback procedures if needed.",
+            "status": "pending",
+            "testStrategy": "Insert sample data across all tables to verify relationships, test constraint violations, verify foreign key cascading, validate that all expected tables and columns exist with correct types and constraints"
+          },
+          {
+            "id": 6,
+            "title": "tRPC Authentication Middleware and Router Structure",
+            "description": "Set up tRPC router structure with authentication middleware for protected routes",
+            "details": "Create authentication middleware that validates JWT tokens and attaches user context to protected procedures. Set up base router structure with linkPages, links, subscription, and user routers. Implement error handling for unauthorized access and invalid tokens. Create public procedures for non-authenticated endpoints like public link pages. Add input validation using Zod schemas for all procedures.",
+            "testStrategy": "Test authentication middleware with valid/invalid tokens, verify protected routes reject unauthenticated requests, test public procedures work without auth, validate error responses and status codes",
+            "priority": "high",
+            "dependencies": [
+              1
+            ],
+            "status": "pending",
+            "subtasks": [
+              {
+                "id": 1,
+                "title": "JWT Token Validation Middleware",
+                "description": "Implement JWT token validation middleware for tRPC procedures",
+                "dependencies": [],
+                "details": "Create middleware to verify JWT tokens from Authorization header, validate token signature and expiration, handle token refresh logic, and implement proper error responses for invalid/expired tokens. Use jsonwebtoken library for token verification.",
+                "status": "pending",
+                "testStrategy": ""
+              },
+              {
+                "id": 2,
+                "title": "User Context Attachment",
+                "description": "Attach authenticated user context to tRPC procedure context",
+                "dependencies": [
+                  "2.1"
+                ],
+                "details": "Extract user information from validated JWT token and attach to tRPC context. Query user data from database using token payload, handle cases where user no longer exists, and provide type-safe user context for protected procedures.",
+                "status": "pending",
+                "testStrategy": ""
+              },
+              {
+                "id": 3,
+                "title": "Base tRPC Router Structure Setup",
+                "description": "Create main tRPC router with organized sub-routers",
+                "dependencies": [],
+                "details": "Set up main tRPC router with linkPages, links, subscription, and user sub-routers. Create router factory with proper TypeScript types, implement router merging, and establish consistent naming conventions for procedures.",
+                "status": "pending",
+                "testStrategy": ""
+              },
+              {
+                "id": 4,
+                "title": "Zod Schema Integration",
+                "description": "Implement comprehensive input validation using Zod schemas",
+                "dependencies": [
+                  "2.3"
+                ],
+                "details": "Create Zod schemas for all tRPC procedure inputs including linkPage creation/updates, link management, user operations, and subscription handling. Implement proper validation error handling and type inference from schemas.",
+                "status": "pending",
+                "testStrategy": ""
+              },
+              {
+                "id": 5,
+                "title": "Protected vs Public Procedure Implementation",
+                "description": "Create protected and public procedure factories with authentication",
+                "dependencies": [
+                  "2.1",
+                  "2.2"
+                ],
+                "details": "Implement protectedProcedure factory that requires authentication using JWT middleware and user context. Create publicProcedure factory for non-authenticated endpoints like public link pages. Ensure proper type safety and error handling for each procedure type.",
+                "status": "pending",
+                "testStrategy": ""
+              },
+              {
+                "id": 6,
+                "title": "Comprehensive Error Handling System",
+                "description": "Implement robust error handling for authentication and authorization failures",
+                "dependencies": [
+                  "2.1",
+                  "2.2",
+                  "2.5"
+                ],
+                "details": "Create custom tRPC error classes for authentication failures, implement proper HTTP status codes (401, 403, 422), add detailed error messages for debugging, implement error logging and monitoring, and ensure consistent error response format across all procedures.",
+                "status": "pending",
+                "testStrategy": ""
+              }
+            ],
+            "parentTaskId": 1
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "User Profile Management and Username System",
+        "description": "Implement user profile CRUD operations with unique username selection",
+        "details": "Create tRPC procedures for getProfile, updateProfile, and checkUsernameAvailable. Implement username validation (alphanumeric, 3-30 characters, no reserved words like 'api', 'admin'). Add username uniqueness check with proper error handling. Create profile update form with real-time username availability checking. Handle username changes and their impact on public URLs.",
+        "testStrategy": "Test username uniqueness validation, verify reserved word blocking, test profile update operations, validate username format requirements, test concurrent username checks",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define User Profile and Username Zod Schemas",
+            "description": "Create TypeScript schemas for user profile data validation and username format requirements",
+            "dependencies": [],
+            "details": "Define Zod schemas for user profile fields (name, bio, avatar, etc.) and username validation rules (alphanumeric, 3-30 characters, reserved words blacklist). Include email validation and optional profile fields. Create shared validation constants for username patterns and reserved words list.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement Backend tRPC Profile Procedures",
+            "description": "Create tRPC procedures for profile operations and username availability checking",
+            "dependencies": [
+              "3.1"
+            ],
+            "details": "Implement getProfile, updateProfile, and checkUsernameAvailable tRPC procedures. Add database queries with proper error handling for username uniqueness checks. Include race condition protection for concurrent username updates. Implement reserved word validation on backend.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Develop Frontend Profile Management Form",
+            "description": "Build user-facing profile update form with validation and error handling",
+            "dependencies": [
+              "3.1",
+              "3.2"
+            ],
+            "details": "Create ProfileForm component with fields for name, bio, avatar upload, and username. Implement form validation using Zod schemas. Add proper error states and success feedback. Include avatar preview and upload functionality with file size limits.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Implement Real-time Username Availability Check",
+            "description": "Add real-time username validation with availability checking as user types",
+            "dependencies": [
+              "3.2",
+              "3.3"
+            ],
+            "details": "Implement debounced username availability checking in the profile form. Add visual indicators for available/unavailable/checking states. Handle network errors gracefully with retry mechanisms. Show helpful error messages for invalid formats or reserved words.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Handle Username Uniqueness and URL Impact",
+            "description": "Address username change implications and ensure proper uniqueness constraints",
+            "dependencies": [
+              "3.2",
+              "3.4"
+            ],
+            "details": "Implement database constraints and application logic for username uniqueness. Handle username changes impact on public profile URLs with proper redirects or URL updates. Add confirmation dialogs for username changes. Consider URL slug generation and collision handling for public links.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Dashboard Layout and Navigation Structure",
+        "description": "Create responsive dashboard layout with navigation for My Pages, Analytics, Billing, Settings, and Logout",
+        "details": "Build DashboardLayout component with responsive sidebar navigation. Implement navigation items: My Pages (default), Analytics, Billing, Settings, and Logout functionality. Add breadcrumb navigation and active state indicators. Create mobile-responsive hamburger menu. Implement logout with proper token cleanup and redirect to login page. Add user profile display in header with subscription tier badge.",
+        "testStrategy": "Test responsive behavior across device sizes, verify navigation state management, test logout functionality and token cleanup, validate accessibility with keyboard navigation",
+        "priority": "medium",
+        "dependencies": [
+          3
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create base DashboardLayout component structure",
+            "description": "Build the foundational DashboardLayout component with responsive sidebar, header, and main content areas",
+            "dependencies": [],
+            "details": "Create DashboardLayout component with CSS Grid/Flexbox layout. Include sidebar container, header container, and main content area. Implement responsive breakpoints for mobile, tablet, and desktop. Add proper semantic HTML structure with ARIA labels for accessibility.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement responsive navigation sidebar",
+            "description": "Build the navigation sidebar with menu items and mobile hamburger functionality",
+            "dependencies": [
+              "4.1"
+            ],
+            "details": "Create NavigationSidebar component with navigation items for My Pages, Analytics, Billing, and Settings. Implement active state indicators and hover effects. Add mobile hamburger menu with slide-out animation. Include proper keyboard navigation support and focus management.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Integrate navigation routing and state management",
+            "description": "Connect navigation items to proper routes and implement navigation state tracking",
+            "dependencies": [
+              "4.2"
+            ],
+            "details": "Set up Next.js routing for dashboard pages (/dashboard/pages, /dashboard/analytics, etc.). Implement useRouter hook for navigation state. Add breadcrumb navigation component. Handle active navigation state persistence across page refreshes.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Implement logout functionality with token cleanup",
+            "description": "Create logout button and implement proper authentication cleanup and redirect",
+            "dependencies": [
+              "4.3"
+            ],
+            "details": "Add logout button to navigation with confirmation modal. Implement logout function that clears authentication tokens, resets user state, and redirects to login page. Handle logout errors gracefully. Add loading state during logout process.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Add user profile display in header with subscription info",
+            "description": "Create header section displaying user information and subscription tier badge",
+            "dependencies": [
+              "4.1"
+            ],
+            "details": "Build UserProfileHeader component showing user avatar, name, and subscription tier badge. Add dropdown menu for profile actions. Implement subscription tier styling (Free, Pro, Enterprise). Include user menu with profile settings and logout options.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Basic Link Page CRUD Operations",
+        "description": "Implement core link page creation, reading, updating, and deletion functionality",
+        "details": "Create tRPC procedures for linkPages.list, create, update, and delete. Implement LinkPageCard component to display page summary. Add form for creating new link pages with title, description, and slug fields. Generate unique slugs automatically from titles with conflict resolution. Implement soft delete or proper cascade delete for links when page is deleted. Add validation for required fields and slug format.",
+        "testStrategy": "Test CRUD operations with valid/invalid data, verify user isolation (users can only access their pages), test slug generation and uniqueness, validate cascade delete behavior",
+        "priority": "high",
+        "dependencies": [
+          1,
+          3
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define Zod Schemas for Link Page Validation",
+            "description": "Create comprehensive Zod validation schemas for link page data structures",
+            "dependencies": [],
+            "details": "Define Zod schemas for link page creation, update, and query operations. Include validation for title (required, max length), description (optional, max length), slug (format validation, alphanumeric + hyphens), isPublic boolean, and theme selection. Create reusable schema fragments for common validation patterns.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement Slug Generation with Conflict Resolution",
+            "description": "Create utility functions for generating unique slugs from titles with automatic conflict resolution",
+            "dependencies": [
+              "5.1"
+            ],
+            "details": "Build slug generation utility that converts titles to URL-safe slugs (lowercase, replace spaces with hyphens, remove special chars). Implement conflict resolution by appending numbers (e.g., 'my-page-2') when slug already exists. Add database query to check uniqueness within user's pages. Include manual slug override option with validation.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Implement tRPC CRUD Procedures",
+            "description": "Create all tRPC procedures for link page list, create, update, and delete operations",
+            "dependencies": [
+              "5.1",
+              "5.2"
+            ],
+            "details": "Implement linkPages.list (with pagination and filtering), linkPages.create (with slug generation), linkPages.update (with slug conflict handling), and linkPages.delete procedures. Add proper authentication middleware to ensure users can only access their own pages. Include input validation using Zod schemas and proper error handling with meaningful messages.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Implement Delete Strategy with Cascade Handling",
+            "description": "Define and implement proper deletion strategy for link pages and associated links",
+            "dependencies": [
+              "5.3"
+            ],
+            "details": "Implement soft delete pattern for link pages (add deletedAt timestamp) or hard delete with proper cascade to associated links table. Create database transaction to ensure consistency when deleting page and all associated links. Add confirmation dialog in frontend and option to restore soft-deleted pages within 30 days.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Develop LinkPageCard Display Component",
+            "description": "Create reusable component for displaying link page summaries in dashboard",
+            "dependencies": [
+              "5.3"
+            ],
+            "details": "Build LinkPageCard component showing page title, description, slug, public/private status, creation date, and action buttons (edit, delete, view public). Add responsive design with proper spacing and hover states. Include link count and last updated information. Add quick actions like toggle public/private status.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Create Link Page Creation and Edit Forms",
+            "description": "Build comprehensive forms for creating and editing link pages with validation",
+            "dependencies": [
+              "5.1",
+              "5.2"
+            ],
+            "details": "Create LinkPageForm component with fields for title, description, slug (auto-generated with manual override), and privacy settings. Implement real-time validation using Zod schemas with error display. Add slug preview showing final URL. Include form state management with proper loading states and success/error feedback. Support both create and edit modes.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Public Link Page Rendering System",
+        "description": "Create public link page display at /u/username with responsive design and SEO optimization",
+        "details": "Implement public route at /u/$username that fetches and displays user's default link page. Create PublicLinkPage component with responsive design and LinkButton components. Add proper meta tags, Open Graph tags, and SEO optimization. Implement error handling for non-existent usernames or private pages. Add basic theme system with customizable colors. Cache public pages for performance.",
+        "testStrategy": "Test public page rendering with valid/invalid usernames, verify SEO meta tags generation, test responsive design across devices, validate caching behavior, test private page access restrictions",
+        "priority": "high",
+        "dependencies": [
+          1,
+          5
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Set up public route and data fetching",
+            "description": "Create the /u/username route with proper data fetching logic",
+            "dependencies": [],
+            "details": "Implement Next.js dynamic route at /u/[username]. Create tRPC procedure to fetch public link page data by username. Add proper error handling for non-existent users and private pages. Implement data validation and sanitization.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Develop PublicLinkPage component",
+            "description": "Create the main public page component with responsive design",
+            "dependencies": [
+              "6.1"
+            ],
+            "details": "Build PublicLinkPage component with responsive layout. Create LinkButton components for displaying links. Implement proper spacing, typography, and mobile-first responsive design. Add loading states and error boundaries.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Integrate SEO optimization",
+            "description": "Add meta tags, Open Graph tags, and SEO features",
+            "dependencies": [
+              "6.2"
+            ],
+            "details": "Implement dynamic meta tags based on link page content. Add Open Graph tags for social media sharing. Generate proper structured data markup. Create custom page titles and descriptions. Add favicon and apple-touch-icon support.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Implement error handling",
+            "description": "Add comprehensive error handling for edge cases",
+            "dependencies": [
+              "6.1"
+            ],
+            "details": "Create custom 404 page for non-existent usernames. Implement private page access restrictions with proper messaging. Add error boundaries and fallback components. Handle network errors and loading states gracefully.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Develop basic theme system",
+            "description": "Create customizable theme system with color options",
+            "dependencies": [
+              "6.2"
+            ],
+            "details": "Implement theme context and provider. Create predefined color schemes and custom color picker. Add CSS custom properties for dynamic theming. Implement theme persistence and preview functionality. Add gradient and background image support.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Set up caching for performance",
+            "description": "Implement caching strategy for public pages",
+            "dependencies": [
+              "6.1",
+              "6.2"
+            ],
+            "details": "Configure Next.js ISR (Incremental Static Regeneration) for public pages. Implement Redis or in-memory caching for frequently accessed pages. Add cache invalidation triggers on page updates. Set up proper cache headers and revalidation strategies.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 7,
+            "title": "Add analytics tracking",
+            "description": "Implement view tracking and basic analytics for public pages",
+            "dependencies": [
+              "6.2"
+            ],
+            "details": "Add page view tracking with privacy-focused approach. Implement click tracking for links without PII collection. Create simple analytics dashboard for page owners. Add proper GDPR compliance and consent management.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Link Management System within Pages",
+        "description": "Implement full CRUD operations for links within link pages including reordering functionality",
+        "details": "Create tRPC procedures for links.list, create, update, delete, and reorder. Implement LinkCard component with edit/delete actions. Build LinkEditor modal/form for adding/editing links with thumbnail upload. Add drag-and-drop reordering with optimistic updates. Implement sortOrder management and bulk reorder operations. Add link validation for URL format and required fields.",
+        "testStrategy": "Test link CRUD operations, verify drag-and-drop reordering, test thumbnail upload functionality, validate URL format checking, test optimistic updates and error handling",
+        "priority": "medium",
+        "dependencies": [
+          1,
+          5
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define Zod Schemas for Link Management",
+            "description": "Create comprehensive Zod validation schemas for link CRUD operations and reordering",
+            "dependencies": [],
+            "details": "Define schemas for createLinkInput (url, title, description, thumbnail), updateLinkInput, deleteLinkInput, and reorderLinksInput with sortOrder array. Include URL format validation, required field validation, and file upload validation for thumbnails. Create shared schemas for link responses and error handling.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement tRPC Link CRUD Procedures",
+            "description": "Create tRPC procedures for basic link operations within link pages",
+            "dependencies": [
+              "7.1"
+            ],
+            "details": "Implement links.list (by pageId), links.create, links.update, and links.delete procedures. Ensure proper user authorization - users can only manage links in their own pages. Add sortOrder management on creation (auto-increment). Implement proper error handling and validation using Zod schemas.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Implement Link Reordering tRPC Procedure",
+            "description": "Create tRPC procedure for bulk link reordering with sortOrder management",
+            "dependencies": [
+              "7.1",
+              "7.2"
+            ],
+            "details": "Implement links.reorder procedure that accepts array of link IDs in new order and updates sortOrder values atomically. Use database transaction to ensure consistency. Validate that all provided link IDs belong to the specified page and user. Add optimistic locking to prevent concurrent reorder conflicts.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Develop LinkCard Component with Actions",
+            "description": "Create LinkCard component to display individual links with edit/delete functionality",
+            "dependencies": [
+              "7.2"
+            ],
+            "details": "Build LinkCard component showing link thumbnail, title, description, and URL. Add edit and delete action buttons with proper confirmation dialogs. Implement drag handle for reordering. Include hover states and loading states for actions. Add responsive design for mobile and desktop views.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Build LinkEditor Modal with Thumbnail Upload",
+            "description": "Create comprehensive link editing modal with file upload functionality",
+            "dependencies": [
+              "7.1",
+              "7.2"
+            ],
+            "details": "Implement LinkEditor modal/form for creating and editing links. Include fields for URL, title, description, and thumbnail upload. Add drag-and-drop file upload area with image preview. Implement client-side image resizing and format validation. Add URL validation with automatic title/description fetching. Include form validation and error display.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Implement Drag-and-Drop Reordering with Optimistic Updates",
+            "description": "Add drag-and-drop functionality with optimistic UI updates and error recovery",
+            "dependencies": [
+              "7.3",
+              "7.4"
+            ],
+            "details": "Integrate drag-and-drop library (like @dnd-kit) for link reordering. Implement optimistic updates that immediately reflect new order in UI before server confirmation. Add error recovery that reverts to previous state on reorder failure. Include visual feedback during drag operations with placeholder elements and smooth animations.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 7,
+            "title": "Integrate Components and Test Complete Link Management Flow",
+            "description": "Connect all link management components and implement comprehensive testing",
+            "dependencies": [
+              "7.4",
+              "7.5",
+              "7.6"
+            ],
+            "details": "Integrate LinkCard, LinkEditor, and drag-and-drop functionality into the main link page view. Implement state management for link list updates and optimistic changes. Add comprehensive error handling and user feedback for all operations. Test complete flow: create, edit, delete, reorder links with various edge cases and error scenarios.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Live Preview and Page Management Features",
+        "description": "Implement real-time preview functionality and enhanced page management options",
+        "details": "Create PagePreview component that shows real-time changes to link page. Implement preview mode toggle in dashboard. Add page duplication, archive/unarchive functionality. Create page settings modal for title, description, slug, and visibility options. Add public URL copy-to-clipboard functionality. Implement page analytics summary (click counts, views).",
+        "testStrategy": "Test real-time preview updates, verify page duplication functionality, test visibility toggle behavior, validate URL copying, test analytics data display accuracy",
+        "priority": "medium",
+        "dependencies": [
+          5,
+          6,
+          7
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Real-time Page Preview Component",
+            "description": "Build PagePreview component that shows live changes to link page as user edits",
+            "dependencies": [],
+            "details": "Implement PagePreview component with real-time updates using state management. Add debouncing for performance optimization. Create preview mode toggle in dashboard. Ensure preview accurately reflects actual page appearance with proper styling and layout.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement Page Duplication Functionality",
+            "description": "Add ability to duplicate existing link pages with all associated links and settings",
+            "dependencies": [
+              "8.1"
+            ],
+            "details": "Create tRPC procedure for page duplication. Implement deep copy of page data including all links, settings, and metadata. Generate unique slug for duplicated page. Add duplicate button to page management interface with confirmation dialog.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Build Archive/Unarchive Page Features",
+            "description": "Implement archive and unarchive functionality for link pages",
+            "dependencies": [
+              "8.1"
+            ],
+            "details": "Create archive/unarchive tRPC procedures. Add archived status to page model. Implement UI controls for archiving/unarchiving pages. Create archived pages view in dashboard. Ensure archived pages are hidden from public access but remain accessible to owner.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Create Page Settings Modal",
+            "description": "Build comprehensive page settings modal for title, description, slug, and visibility options",
+            "dependencies": [
+              "8.2",
+              "8.3"
+            ],
+            "details": "Create PageSettingsModal component with form fields for page metadata. Implement visibility toggle (public/private). Add slug validation and uniqueness checking. Include description field with character limits. Add save/cancel functionality with proper validation.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Add Public URL Copy-to-Clipboard Feature",
+            "description": "Implement functionality to copy public page URLs to clipboard",
+            "dependencies": [
+              "8.4"
+            ],
+            "details": "Add copy-to-clipboard button for public page URLs. Implement clipboard API with fallback for older browsers. Show success/error feedback to user. Ensure proper URL generation for public pages. Add URL preview in settings modal.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Implement Basic Page Analytics Summary",
+            "description": "Create analytics dashboard showing page views and click counts",
+            "dependencies": [
+              "8.5"
+            ],
+            "details": "Create analytics data models and tracking. Implement tRPC procedures for analytics.get. Build AnalyticsSummary component showing total views, clicks, and basic metrics. Add analytics cards to page dashboard. Implement basic tracking for page views and link clicks with privacy considerations.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Polar.sh Subscription Integration and Webhook Handling",
+        "description": "Integrate Polar.sh for subscription management with webhook processing for real-time subscription updates",
+        "details": "Set up Polar.sh API integration for creating checkout sessions and managing subscriptions. Implement webhook endpoint to handle subscription events (created, updated, cancelled, payment_failed). Create subscription status synchronization logic with proper error handling and retry mechanisms. Add webhook signature verification for security. Implement subscription.getCurrent, createCheckoutSession, handleWebhook, and cancelSubscription procedures.",
+        "testStrategy": "Test webhook signature verification, validate subscription status updates, test checkout session creation, verify webhook retry logic, test subscription cancellation flow",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Set up Polar.sh API client configuration",
+            "description": "Initialize Polar.sh SDK, configure API keys, and set up environment variables for Polar.sh integration",
+            "dependencies": [],
+            "details": "Install @polar-sh/sdk package, create Polar client instance with proper authentication, set up environment variables for API keys and webhook secrets, configure client for production and development environments",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement tRPC procedures for subscription management",
+            "description": "Create subscription.getCurrent, createCheckoutSession, and cancelSubscription tRPC procedures",
+            "dependencies": [
+              "9.1"
+            ],
+            "details": "Build subscription.getCurrent to fetch user's active subscription, implement createCheckoutSession for payment flow initiation, add cancelSubscription procedure with proper cleanup, include error handling and validation for all procedures",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Develop webhook endpoint with signature verification",
+            "description": "Create secure webhook endpoint at /api/webhooks/polar with proper signature verification and request validation",
+            "dependencies": [
+              "9.1"
+            ],
+            "details": "Implement webhook endpoint using Next.js API routes, add Polar.sh webhook signature verification for security, validate webhook payload structure, implement proper error responses and logging",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Implement subscription event processing logic",
+            "description": "Handle subscription lifecycle events (created, updated, cancelled, payment_failed) from webhook payload",
+            "dependencies": [
+              "9.3"
+            ],
+            "details": "Process subscription.created events to activate user subscriptions, handle subscription.updated for plan changes, implement subscription.cancelled for deactivation, process payment_failed events with appropriate user notifications",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Build subscription status synchronization system",
+            "description": "Create robust sync logic to maintain consistent subscription state between Polar.sh and local database",
+            "dependencies": [
+              "9.2",
+              "9.4"
+            ],
+            "details": "Implement database update logic for subscription status changes, add retry mechanisms for failed sync operations, create reconciliation process for data consistency, implement proper transaction handling to prevent race conditions",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Add comprehensive error handling and logging",
+            "description": "Implement robust error handling, logging, and monitoring for all Polar.sh integration components",
+            "dependencies": [
+              "9.2",
+              "9.3",
+              "9.4",
+              "9.5"
+            ],
+            "details": "Add structured logging for webhook events and API calls, implement error recovery mechanisms, set up monitoring for webhook failures and API rate limits, create alerts for critical subscription processing failures",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 7,
+            "title": "Set up comprehensive testing for subscription flow",
+            "description": "Create test suite covering webhook processing, subscription management, and error scenarios",
+            "dependencies": [
+              "9.6"
+            ],
+            "details": "Write unit tests for tRPC procedures and webhook handlers, create integration tests for complete subscription flows, implement webhook signature verification tests, add tests for error scenarios and retry logic, set up test data fixtures for different subscription states",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Feature Gating and Billing Dashboard",
+        "description": "Implement subscription-based feature restrictions and user-facing billing management interface",
+        "details": "Create feature gating utilities to restrict premium features (unlimited pages, custom themes, analytics, custom domains). Implement SubscriptionCard component showing current plan, usage limits, and upgrade options. Build PricingTable component for plan comparison. Add billing dashboard with subscription status, next billing date, and cancellation options. Create upgrade/downgrade flows with proper proration handling.",
+        "testStrategy": "Test feature gate enforcement across different subscription tiers, verify billing dashboard data accuracy, test upgrade/downgrade flows, validate usage limit tracking, test subscription cancellation process",
+        "priority": "medium",
+        "dependencies": [
+          9
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create feature gating utility system",
+            "description": "Build core feature gating utilities to enforce subscription-based access control throughout the application",
+            "dependencies": [],
+            "details": "Create FeatureGate component and useFeatureGate hook to check user subscription tier against required feature access levels. Implement feature definitions for unlimited pages, custom themes, analytics, and custom domains. Add server-side feature validation middleware for API routes. Create utility functions to check feature availability based on subscription tier.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement SubscriptionCard component",
+            "description": "Build user subscription display card showing current plan details and usage limits",
+            "dependencies": [
+              "10.1"
+            ],
+            "details": "Create SubscriptionCard component displaying current subscription tier, billing cycle, next billing date, and feature usage limits. Show progress bars for usage metrics like page count and monthly views. Add upgrade/downgrade action buttons. Include subscription status indicators (active, cancelled, past due). Style with proper visual hierarchy and responsive design.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Build PricingTable component for plan comparison",
+            "description": "Create interactive pricing table component for subscription plan selection and comparison",
+            "dependencies": [
+              "10.1"
+            ],
+            "details": "Build PricingTable component with tier comparison showing features, limits, and pricing. Highlight current user's plan and show upgrade/downgrade options. Include feature comparison matrix with checkmarks and limits. Add call-to-action buttons for plan changes. Implement responsive design for mobile and desktop viewing.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Create billing dashboard UI layout",
+            "description": "Build comprehensive billing dashboard interface with subscription management features",
+            "dependencies": [
+              "10.2"
+            ],
+            "details": "Create BillingDashboard page component with sections for current subscription, billing history, usage metrics, and plan management. Add payment method display and update functionality. Include next billing date countdown and usage warnings. Implement proper loading states and error handling for billing data fetching.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Implement subscription upgrade/downgrade flow",
+            "description": "Build upgrade and downgrade workflow with proration calculations and confirmation dialogs",
+            "dependencies": [
+              "10.3",
+              "10.4"
+            ],
+            "details": "Create upgrade/downgrade modal workflows with plan selection, proration preview, and payment confirmation. Implement server-side API routes for subscription changes with Polar integration. Add confirmation dialogs showing billing changes and effective dates. Handle edge cases like failed payments and subscription conflicts.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Build subscription cancellation system",
+            "description": "Implement subscription cancellation flow with retention offers and data preservation options",
+            "dependencies": [
+              "10.4"
+            ],
+            "details": "Create cancellation flow with confirmation steps and reason collection. Implement immediate vs end-of-period cancellation options. Add retention offers or downgrade alternatives. Build cancellation confirmation page with data export options. Ensure proper cleanup of premium features while preserving user data.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 7,
+            "title": "Integrate feature gates across application",
+            "description": "Apply feature gating throughout the application to enforce subscription-based access control",
+            "dependencies": [
+              "10.1",
+              "10.6"
+            ],
+            "details": "Integrate FeatureGate components across dashboard pages to restrict premium features. Add feature checks to API routes for server-side enforcement. Implement graceful degradation for users hitting limits. Add upgrade prompts and upsell messaging at feature boundaries. Test comprehensive feature restriction across all subscription tiers.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "created": "2025-07-30T17:14:48.219Z",
+      "updated": "2025-07-30T17:28:58.443Z",
+      "description": "Tasks for master context"
+    }
+  }
+}

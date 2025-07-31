@@ -1,0 +1,305 @@
+# Linktree Alternative SaaS - Dashboard & Backend Implementation
+
+## Overview
+Building a comprehensive user dashboard and backend system for a Linktree alternative SaaS platform. The system allows users to create and manage multiple link pages, each containing customizable links with thumbnails and visibility controls. Each link page is accessible via public URLs (e.g., `/u/username` or custom slugs). The platform includes subscription-based feature gating through Polar.sh integration.
+
+## Core Features
+
+### 1. User Dashboard
+- **Link Page Management**: Create, update, delete multiple link pages per user
+- **Link Management**: Add, edit, remove, reorder links within each page
+- **Link Customization**: Thumbnails, titles, descriptions, URLs, and visibility toggles
+- **Public Page Management**: Preview, copy, and share public page URLs
+- **Navigation**: Clean dashboard navigation with My Pages, Analytics, Billing, Settings, Logout
+
+### 2. Backend API System
+- **Authentication Scoped CRUD**: All operations restricted to authenticated users and their own data
+- **Data Relationships**: Users → Link Pages (1:many) → Links (1:many)
+- **Public API**: Serve public link pages without authentication
+- **Authorization**: Prevent cross-user data access
+
+### 3. Subscription Management
+- **Polar.sh Integration**: Handle billing, subscription tiers, and webhooks
+- **Feature Gating**: Restrict premium features based on subscription status
+- **Billing Dashboard**: Display subscription status, manage billing
+- **Feature Limitations**: Free vs paid tier restrictions (custom branding, analytics, unlimited pages)
+
+### 4. Public Link Pages
+- **Clean Public URLs**: `/u/username` and custom slug support
+- **Responsive Design**: Mobile-first approach for link pages
+- **Link Analytics**: Click tracking and analytics (premium feature)
+- **Custom Branding**: Custom themes and branding (premium feature)
+
+## User Experience
+
+### User Personas
+- **Free Users**: Basic link page creators with limited customization
+- **Premium Users**: Power users needing multiple pages, analytics, and custom branding
+- **Content Creators**: Social media influencers and creators needing professional link pages
+
+### Key User Flows
+1. **Onboarding**: Register → Create first link page → Add links → Preview public page
+2. **Daily Usage**: Login → Select page → Add/edit links → Share updated page
+3. **Subscription**: View billing → Upgrade → Access premium features
+4. **Page Management**: Create new page → Customize → Set public URL → Share
+
+### UI/UX Considerations
+- **Dashboard-First Design**: Focus on ease of use for managing multiple pages
+- **Drag-and-Drop**: Intuitive link reordering
+- **Live Preview**: Real-time preview of public page changes
+- **Mobile Responsive**: Dashboard and public pages work on all devices
+
+## Technical Architecture
+
+### Database Schema (Drizzle ORM - SQLite)
+```typescript
+// Extend existing user table with subscription fields
+user: {
+  // existing fields...
+  subscriptionTier: 'free' | 'premium'
+  subscriptionStatus: 'active' | 'cancelled' | 'expired'
+  polarCustomerId: string
+  username: string (unique)
+}
+
+linkPage: {
+  id: string (primary)
+  userId: string (foreign key)
+  title: string
+  slug: string (unique)
+  description: string
+  isDefault: boolean
+  isPublic: boolean
+  customDomain: string (nullable, premium)
+  theme: string (premium)
+  createdAt: timestamp
+  updatedAt: timestamp
+}
+
+link: {
+  id: string (primary)
+  linkPageId: string (foreign key)
+  title: string
+  url: string
+  description: string
+  thumbnail: string (URL)
+  isVisible: boolean
+  sortOrder: integer
+  clickCount: integer (for analytics)
+  createdAt: timestamp
+  updatedAt: timestamp
+}
+
+subscription: {
+  id: string (primary)
+  userId: string (foreign key)
+  polarSubscriptionId: string
+  tier: 'free' | 'premium'
+  status: 'active' | 'cancelled' | 'expired'
+  currentPeriodEnd: timestamp
+  createdAt: timestamp
+  updatedAt: timestamp
+}
+```
+
+### tRPC API Routes
+```typescript
+// Link Pages Router
+linkPages: {
+  list: (auth) => UserLinkPage[]
+  create: (auth, input) => LinkPage
+  update: (auth, id, input) => LinkPage
+  delete: (auth, id) => boolean
+  getBySlug: (slug) => PublicLinkPage // public endpoint
+}
+
+// Links Router
+links: {
+  list: (auth, linkPageId) => Link[]
+  create: (auth, linkPageId, input) => Link
+  update: (auth, id, input) => Link
+  delete: (auth, id) => boolean
+  reorder: (auth, linkPageId, linkIds[]) => boolean
+  incrementClick: (linkId) => boolean // public endpoint
+}
+
+// Subscription Router
+subscription: {
+  getCurrent: (auth) => Subscription
+  createCheckoutSession: (auth, tier) => CheckoutURL
+  handleWebhook: (polarWebhook) => boolean
+  cancelSubscription: (auth) => boolean
+}
+
+// User Router
+user: {
+  getProfile: (auth) => User
+  updateProfile: (auth, input) => User
+  checkUsernameAvailable: (username) => boolean
+}
+```
+
+### Component Architecture
+```
+src/
+├── components/
+│   ├── dashboard/
+│   │   ├── DashboardLayout.tsx
+│   │   ├── DashboardNavbar.tsx
+│   │   ├── LinkPageCard.tsx
+│   │   ├── LinkCard.tsx
+│   │   ├── LinkEditor.tsx
+│   │   └── PagePreview.tsx
+│   ├── public/
+│   │   ├── PublicLinkPage.tsx
+│   │   └── LinkButton.tsx
+│   └── billing/
+│       ├── SubscriptionCard.tsx
+│       └── PricingTable.tsx
+├── routes/
+│   ├── _authed/
+│   │   ├── dashboard/
+│   │   │   ├── index.tsx
+│   │   │   ├── pages.tsx
+│   │   │   ├── pages/new.tsx
+│   │   │   ├── pages/$pageId.tsx
+│   │   │   ├── billing.tsx
+│   │   │   ├── settings.tsx
+│   │   │   └── analytics.tsx
+│   │   └── dashboard.tsx
+│   └── u/
+│       └── $username.tsx (public pages)
+└── lib/
+    ├── polar.ts
+    ├── subscription-utils.ts
+    └── feature-gates.ts
+```
+
+### External Integrations
+- **Polar.sh API**: Subscription management, webhook handling
+- **File Upload**: Image thumbnails (local storage initially, S3/Cloudinary later)
+- **Analytics**: Basic click tracking (premium users get detailed analytics)
+
+## Development Roadmap
+
+### Phase 1: Foundation & Database (MVP Core)
+- Extend database schema with linkPage, link, subscription tables
+- Set up Drizzle migrations and update existing schema
+- Create basic tRPC router structure with authentication middleware
+- Implement user profile management with username selection
+
+### Phase 2: Basic Link Page Management
+- Create dashboard layout with navigation
+- Implement basic link page CRUD operations
+- Build link management within pages (add, edit, delete, reorder)
+- Create simple public page rendering at `/u/username`
+
+### Phase 3: Enhanced Dashboard UX
+- Implement drag-and-drop link reordering
+- Add live preview functionality
+- Create link thumbnail upload/management
+- Build page settings and customization options
+
+### Phase 4: Polar.sh Integration
+- Set up Polar.sh webhook handling
+- Implement subscription status tracking
+- Create billing dashboard pages
+- Add feature gating logic throughout the app
+
+### Phase 5: Public Page Features
+- Enhance public page design and themes
+- Implement click tracking and basic analytics
+- Add custom slug support
+- Optimize for mobile and SEO
+
+### Phase 6: Premium Features
+- Custom branding and themes
+- Advanced analytics dashboard
+- Custom domain support
+- Bulk import/export functionality
+
+## Logical Dependency Chain
+
+### Foundation First (Required for everything else)
+1. **Database Schema Updates**: Must be complete before any CRUD operations
+2. **tRPC Authentication Middleware**: Required for all protected routes
+3. **Basic User Profile**: Username system needed for public URLs
+
+### Quick Wins (Build momentum with visible progress)
+4. **Dashboard Layout**: Navigation and basic structure users can see immediately
+5. **Simple Link Page Creation**: Core functionality that can be demonstrated quickly
+6. **Basic Public Page**: `/u/username` rendering so links actually work
+
+### Core Features (Build upon foundation)
+7. **Link CRUD Operations**: Full link management within pages
+8. **Link Reordering**: Enhanced UX for link management
+9. **Page Management**: Multiple pages per user
+10. **Preview Functionality**: Live preview of changes
+
+### Business Logic (Monetization and advanced features)
+11. **Subscription System**: Polar.sh integration and webhook handling
+12. **Feature Gating**: Restrict features based on subscription
+13. **Billing Dashboard**: User-facing subscription management
+14. **Analytics**: Click tracking and reporting
+
+### Polish and Advanced Features
+15. **Custom Themes**: Enhanced public page appearance
+16. **Custom Domains**: Premium feature for branding
+17. **Advanced Analytics**: Detailed reporting dashboard
+18. **Performance Optimization**: Caching, image optimization, etc.
+
+## Risks and Mitigations
+
+### Technical Challenges
+- **Database Migration Complexity**: Start with simple schema, iterate carefully
+- **Real-time Preview**: Use React state management, avoid over-engineering
+- **File Upload Management**: Start with local storage, plan S3 migration
+- **Subscription State Sync**: Implement proper webhook retry logic and fallbacks
+
+### MVP Definition
+- **Core MVP**: User can create account, make link page, add links, share public URL
+- **Business MVP**: Above + basic subscription integration and feature gating
+- **Market MVP**: Above + analytics, custom branding, mobile optimization
+
+### Resource Constraints
+- **Development Phases**: Each phase should be completable in 1-2 weeks
+- **Database Changes**: Plan schema carefully to minimize breaking changes
+- **External Dependencies**: Polar.sh integration should be isolated and testable
+
+## Appendix
+
+### Feature Gating Strategy
+```typescript
+// Free Tier Limits
+- 1 link page maximum
+- Basic themes only
+- No custom branding
+- No analytics
+- Standard link ordering
+
+// Premium Tier Features
+- Unlimited link pages
+- Custom themes and branding
+- Detailed analytics
+- Custom domains
+- Advanced link customization
+- Priority support
+```
+
+### API Rate Limiting
+- Public link page access: No limits (cached)
+- Dashboard API calls: 100 requests/minute per user
+- Subscription webhooks: Proper retry logic with exponential backoff
+
+### SEO Considerations
+- Public pages should have proper meta tags
+- Custom slugs for better URL structure
+- Open Graph tags for social sharing
+- Sitemap generation for public pages
+
+### Security Requirements
+- All dashboard operations require authentication
+- Cross-user data access prevention
+- Input validation on all CRUD operations
+- Webhook signature verification for Polar.sh
+- Rate limiting on public endpoints
